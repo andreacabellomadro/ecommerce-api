@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
 import com.ecommerce.api.dto.ProductResponse;
+import com.ecommerce.api.exception.ProductNotFoundException;
 import com.ecommerce.api.model.Product;
 import com.ecommerce.api.repository.ProductRepository;
 
@@ -21,7 +22,7 @@ public class ProductService {
     @Transactional (readOnly = true)
     public ProductResponse getProductById(Long id){
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
         return entityToResponse(product);
     }
 
@@ -47,7 +48,7 @@ public class ProductService {
     @Transactional 
     public ProductResponse updateProduct(Long id, ProductCreateRequest productCreateRequest){
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
         product.setName(productCreateRequest.getName());
         product.setPrice(productCreateRequest.getPrice());
         product.setStock(productCreateRequest.getStock());
@@ -57,7 +58,7 @@ public class ProductService {
     @Transactional 
     public void deleteProduct(Long id){
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
         productRepository.delete(product);
     }
 
