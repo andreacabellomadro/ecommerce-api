@@ -40,4 +40,12 @@ public class GlobalExceptionHandler {
 
         return response;
     }
+
+    @ExceptionHandler (InvalidRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidRequestParameter(InvalidRequestParameterException exception) {
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                exception.getMessage());
+    }
 }

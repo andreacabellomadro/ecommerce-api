@@ -283,4 +283,28 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.content[0].name")
                                                 .value("Teclado mecánico"));
         }
+
+        @Test
+        void shouldRejectPageSizeGreaterThanMaximum() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("size", "51"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Page size must be between 1 and 50"));
+        }
+
+        @Test
+        void shouldRejectUnsupportedSortField() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("sort", "unknown,asc"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Sorting by 'unknown' is not allowed"));
+        }
 }
