@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
 import com.ecommerce.api.dto.ProductResponse;
+import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
 import com.ecommerce.api.model.Product;
 import com.ecommerce.api.repository.ProductRepository;
@@ -46,12 +47,12 @@ public class ProductService {
     }
 
     @Transactional 
-    public ProductResponse updateProduct(Long id, ProductCreateRequest productCreateRequest){
+    public ProductResponse updateProduct(Long id, ProductUpdateRequest productUpdateRequest){
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        product.setName(productCreateRequest.getName());
-        product.setPrice(productCreateRequest.getPrice());
-        product.setStock(productCreateRequest.getStock());
+        product.setName(productUpdateRequest.getName());
+        product.setPrice(productUpdateRequest.getPrice());
+        product.setStock(productUpdateRequest.getStock());
         return entityToResponse(product);
     }
 

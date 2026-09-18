@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
 import com.ecommerce.api.dto.ProductResponse;
+import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
 import com.ecommerce.api.model.Product;
 import com.ecommerce.api.repository.ProductRepository;
@@ -115,7 +116,7 @@ class ProductServiceTest {
                 .stock(5)
                 .build();
 
-        ProductCreateRequest request = ProductCreateRequest.builder()
+        ProductUpdateRequest request = ProductUpdateRequest.builder()
                 .name("Teclado nuevo")
                 .price(new BigDecimal("50.00"))
                 .stock(10)
@@ -138,7 +139,7 @@ class ProductServiceTest {
     @Test
     void shouldThrowExceptionWhenUpdatingNonExistingProduct() {
 
-        ProductCreateRequest request = ProductCreateRequest.builder()
+        ProductUpdateRequest request = ProductUpdateRequest.builder()
                 .name("Teclado")
                 .price(new BigDecimal("50.00"))
                 .stock(10)

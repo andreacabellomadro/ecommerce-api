@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
 import com.ecommerce.api.dto.ProductResponse;
+import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.service.ProductService;
 
 import jakarta.validation.Valid;
@@ -45,7 +46,7 @@ public class ProductController {
     }
     
     @PutMapping("/{id}")
-    public ProductResponse updateProduct(@PathVariable Long id,@Valid @RequestBody ProductCreateRequest productUpdateRequest) {
+    public ProductResponse updateProduct(@PathVariable Long id,@Valid @RequestBody ProductUpdateRequest productUpdateRequest) {
         return productService.updateProduct(id, productUpdateRequest);
     }
 
