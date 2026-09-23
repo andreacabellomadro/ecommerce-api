@@ -1,7 +1,10 @@
 package com.ecommerce.api.service;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +14,7 @@ import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
 import com.ecommerce.api.model.Product;
 import com.ecommerce.api.repository.ProductRepository;
+import com.ecommerce.api.specification.ProductSpecification;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,15 +32,36 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getAllProducts(Pageable pageable, String name) {
-        Page<Product> products;
+    public Page<ProductResponse> getAllProducts(
+            Pageable pageable,
+            String name,
+            BigDecimal minPrice,
+            BigDecimal maxPrice) {
 
-        if (name == null || name.isBlank()) {
-            products = productRepository.findAll(pageable);
-        } else {
-            products = productRepository
-                    .findByNameContainingIgnoreCase(name, pageable);
+        Specification<Product> specification = null;
+
+        if (name != null && !name.isBlank()) {
+            specification = ProductSpecification.nameContains(name);
         }
+
+        if (minPrice != null) {
+            Specification<Product> priceSpecification = ProductSpecification.priceGreaterThanOrEqualTo(minPrice);
+
+            specification = specification == null
+                    ? priceSpecification
+                    : specification.and(priceSpecification);
+        }
+
+        if (maxPrice != null) {
+            Specification<Product> priceSpecification = ProductSpecification.priceLessThanOrEqualTo(maxPrice);
+
+            specification = specification == null
+                    ? priceSpecification
+                    : specification.and(priceSpecification);
+        }
+
+        Page<Product> products = productRepository.findAll(specification, pageable);
+
         return products.map(this::entityToResponse);
     }
 

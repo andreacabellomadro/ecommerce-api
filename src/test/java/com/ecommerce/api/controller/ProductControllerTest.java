@@ -84,7 +84,10 @@ class ProductControllerTest {
 
                 when(productService.getAllProducts(
                                 org.mockito.ArgumentMatchers.any(Pageable.class),
-                                org.mockito.ArgumentMatchers.isNull()))
+                                org.mockito.ArgumentMatchers.isNull(),
+                                org.mockito.ArgumentMatchers.isNull(),
+                                org.mockito.ArgumentMatchers.isNull()
+                        ))
                                 .thenReturn(page);
 
                 mockMvc.perform(
@@ -231,6 +234,8 @@ class ProductControllerTest {
 
                 when(productService.getAllProducts(
                                 any(Pageable.class),
+                                isNull(),
+                                isNull(),
                                 isNull())).thenReturn(page);
 
                 mockMvc.perform(
@@ -245,6 +250,8 @@ class ProductControllerTest {
                 verify(productService)
                                 .getAllProducts(
                                                 pageableCaptor.capture(),
+                                                isNull(),
+                                                isNull(),       
                                                 isNull());
 
                 Pageable pageable = pageableCaptor.getValue();
@@ -271,7 +278,9 @@ class ProductControllerTest {
 
                 when(productService.getAllProducts(
                                 org.mockito.ArgumentMatchers.any(Pageable.class),
-                                org.mockito.ArgumentMatchers.eq("teclado"))).thenReturn(page);
+                                org.mockito.ArgumentMatchers.eq("teclado"),
+                                org.mockito.ArgumentMatchers.isNull(),
+                                org.mockito.ArgumentMatchers.isNull())).thenReturn(page);
 
                 mockMvc.perform(
                                 get("/api/v1/products")

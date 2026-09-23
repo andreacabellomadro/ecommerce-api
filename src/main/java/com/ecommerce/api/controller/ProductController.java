@@ -1,5 +1,6 @@
 package com.ecommerce.api.controller;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -39,7 +40,9 @@ public class ProductController {
     @GetMapping
     public Page<ProductResponse> getAllProducts(
             @PageableDefault(size = 10, sort = "id") Pageable pageable,
-            @RequestParam(required = false) String name) {
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
 
         if (pageable.getPageSize() < 1 ||
                 pageable.getPageSize() > MAX_PAGE_SIZE) {
@@ -55,7 +58,7 @@ public class ProductController {
                         "Sorting by '" + order.getProperty() + "' is not allowed");
             }
         }
-        return productService.getAllProducts(pageable, name);
+        return productService.getAllProducts(pageable, name, minPrice, maxPrice);
     }
 
     @GetMapping("/{id}")

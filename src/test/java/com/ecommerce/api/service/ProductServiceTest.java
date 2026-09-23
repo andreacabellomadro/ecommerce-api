@@ -11,7 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
 import com.ecommerce.api.dto.ProductResponse;
@@ -221,10 +221,11 @@ class ProductServiceTest {
                                 pageable,
                                 2);
 
-                when(productRepository.findAll(pageable))
-                                .thenReturn(page);
+                when(productRepository.findAll(
+                                ArgumentMatchers.<Specification<Product>>isNull(),
+                                ArgumentMatchers.eq(pageable))).thenReturn(page);
 
-                Page<ProductResponse> result = productService.getAllProducts(pageable, null);
+                Page<ProductResponse> result = productService.getAllProducts(pageable, null, null, null);
 
                 assertThat(result.getContent()).hasSize(2);
                 assertThat(result.getContent().get(0).getName())
@@ -237,11 +238,9 @@ class ProductServiceTest {
                 assertThat(result.getTotalElements()).isEqualTo(2);
                 assertThat(result.getTotalPages()).isEqualTo(1);
 
-                verify(productRepository).findAll(pageable);
-                verify(productRepository, never())
-                                .findByNameContainingIgnoreCase(
-                                                ArgumentMatchers.anyString(),
-                                                ArgumentMatchers.any(Pageable.class));
+                verify(productRepository).findAll(
+                                ArgumentMatchers.<Specification<Product>>isNull(),
+                                ArgumentMatchers.eq(pageable));
         }
 
         @Test
@@ -261,24 +260,62 @@ class ProductServiceTest {
                                 pageable,
                                 1);
 
-                when(productRepository.findByNameContainingIgnoreCase(
-                                "teclado",
-                                pageable)).thenReturn(page);
+                when(productRepository.findAll(
+                                ArgumentMatchers.any(Specification.class),
+                                ArgumentMatchers.eq(pageable))).thenReturn(page);
 
                 Page<ProductResponse> result = productService.getAllProducts(
                                 pageable,
-                                "teclado");
+                                "teclado",
+                                null,
+                                null);
 
                 assertThat(result.getContent()).hasSize(1);
                 assertThat(result.getContent().get(0).getName())
                                 .isEqualTo("Teclado mecánico");
 
                 verify(productRepository)
-                                .findByNameContainingIgnoreCase(
-                                                "teclado",
-                                                pageable);
+                                .findAll(
+                                                ArgumentMatchers.any(Specification.class),
+                                                ArgumentMatchers.eq(pageable));
+        }
 
-                verify(productRepository, never())
-                                .findAll(pageable);
+        @Test
+        void shouldGetProductsWithCombinedFilters() {
+
+                Product product = Product.builder()
+                                .id(1L)
+                                .name("Teclado mecánico")
+                                .price(new BigDecimal("79.99"))
+                                .stock(10)
+                                .build();
+
+                Pageable pageable = PageRequest.of(0, 10);
+
+                Page<Product> page = new PageImpl<>(
+                                List.of(product),
+                                pageable,
+                                1);
+
+                when(productRepository.findAll(
+                                ArgumentMatchers.<Specification<Product>>any(),
+                                ArgumentMatchers.eq(pageable))).thenReturn(page);
+
+                Page<ProductResponse> result = productService.getAllProducts(
+                                pageable,
+                                "teclado",
+                                new BigDecimal("50"),
+                                new BigDecimal("100"));
+
+                assertThat(result.getContent()).hasSize(1);
+                assertThat(result.getContent().get(0).getName())
+                                .isEqualTo("Teclado mecánico");
+
+                assertThat(result.getContent().get(0).getPrice())
+                                .isEqualByComparingTo("79.99");
+
+                verify(productRepository).findAll(
+                                ArgumentMatchers.<Specification<Product>>any(),
+                                ArgumentMatchers.eq(pageable));
         }
 }
