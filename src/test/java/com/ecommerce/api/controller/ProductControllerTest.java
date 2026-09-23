@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -86,8 +87,7 @@ class ProductControllerTest {
                                 org.mockito.ArgumentMatchers.any(Pageable.class),
                                 org.mockito.ArgumentMatchers.isNull(),
                                 org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull()
-                        ))
+                                org.mockito.ArgumentMatchers.isNull()))
                                 .thenReturn(page);
 
                 mockMvc.perform(
@@ -251,7 +251,7 @@ class ProductControllerTest {
                                 .getAllProducts(
                                                 pageableCaptor.capture(),
                                                 isNull(),
-                                                isNull(),       
+                                                isNull(),
                                                 isNull());
 
                 Pageable pageable = pageableCaptor.getValue();
@@ -315,5 +315,63 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.status").value(400))
                                 .andExpect(jsonPath("$.message")
                                                 .value("Sorting by 'unknown' is not allowed"));
+        }
+
+        @Test
+        void shouldRejectNegativeMinPrice() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("minPrice", "-10"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("minPrice cannot be negative"));
+        }
+
+        @Test
+        void shouldRejectNegativeMaxPrice() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("maxPrice", "-10"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("maxPrice cannot be negative"));
+        }
+
+        @Test
+        void shouldRejectInvalidPriceRange() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("minPrice", "100")
+                                                .param("maxPrice", "20"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("minPrice cannot be greater than maxPrice"));
+        }
+
+        @Test
+        void shouldAcceptEqualMinAndMaxPrice() throws Exception {
+
+                Page<ProductResponse> page = new PageImpl<>(
+                                List.of(),
+                                PageRequest.of(0, 10),
+                                0);
+
+                when(productService.getAllProducts(
+                                any(Pageable.class),
+                                isNull(),
+                                eq(new BigDecimal("50")),
+                                eq(new BigDecimal("50")))).thenReturn(page);
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("minPrice", "50")
+                                                .param("maxPrice", "50"))
+                                .andExpect(status().isOk());
         }
 }

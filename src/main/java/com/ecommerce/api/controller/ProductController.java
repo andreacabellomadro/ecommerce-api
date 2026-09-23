@@ -58,6 +58,24 @@ public class ProductController {
                         "Sorting by '" + order.getProperty() + "' is not allowed");
             }
         }
+
+        if (minPrice != null && minPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidRequestParameterException(
+                    "minPrice cannot be negative");
+        }
+
+        if (maxPrice != null && maxPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidRequestParameterException(
+                    "maxPrice cannot be negative");
+        }
+
+        if (minPrice != null
+                && maxPrice != null
+                && minPrice.compareTo(maxPrice) > 0) {
+
+            throw new InvalidRequestParameterException(
+                    "minPrice cannot be greater than maxPrice");
+        }
         return productService.getAllProducts(pageable, name, minPrice, maxPrice);
     }
 
