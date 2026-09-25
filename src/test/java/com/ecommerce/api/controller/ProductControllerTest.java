@@ -87,6 +87,8 @@ class ProductControllerTest {
                                 org.mockito.ArgumentMatchers.any(Pageable.class),
                                 org.mockito.ArgumentMatchers.isNull(),
                                 org.mockito.ArgumentMatchers.isNull(),
+                                org.mockito.ArgumentMatchers.isNull(),
+                                org.mockito.ArgumentMatchers.isNull(),
                                 org.mockito.ArgumentMatchers.isNull()))
                                 .thenReturn(page);
 
@@ -236,6 +238,8 @@ class ProductControllerTest {
                                 any(Pageable.class),
                                 isNull(),
                                 isNull(),
+                                isNull(),
+                                isNull(),
                                 isNull())).thenReturn(page);
 
                 mockMvc.perform(
@@ -250,6 +254,8 @@ class ProductControllerTest {
                 verify(productService)
                                 .getAllProducts(
                                                 pageableCaptor.capture(),
+                                                isNull(),
+                                                isNull(),
                                                 isNull(),
                                                 isNull(),
                                                 isNull());
@@ -279,6 +285,8 @@ class ProductControllerTest {
                 when(productService.getAllProducts(
                                 org.mockito.ArgumentMatchers.any(Pageable.class),
                                 org.mockito.ArgumentMatchers.eq("teclado"),
+                                org.mockito.ArgumentMatchers.isNull(),
+                                org.mockito.ArgumentMatchers.isNull(),
                                 org.mockito.ArgumentMatchers.isNull(),
                                 org.mockito.ArgumentMatchers.isNull())).thenReturn(page);
 
@@ -366,12 +374,74 @@ class ProductControllerTest {
                                 any(Pageable.class),
                                 isNull(),
                                 eq(new BigDecimal("50")),
-                                eq(new BigDecimal("50")))).thenReturn(page);
+                                eq(new BigDecimal("50")),
+                                isNull(),
+                                isNull())).thenReturn(page);
 
                 mockMvc.perform(
                                 get("/api/v1/products")
                                                 .param("minPrice", "50")
                                                 .param("maxPrice", "50"))
+                                .andExpect(status().isOk());
+        }
+
+        @Test
+        void shouldRejectNegativeMinStock() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("minStock", "-10"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("minStock cannot be negative"));
+        }
+
+        @Test
+        void shouldRejectNegativeMaxStock() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("maxStock", "-10"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("maxStock cannot be negative"));
+        }
+
+        @Test
+        void shouldRejectInvalidStockRange() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("minStock", "100")
+                                                .param("maxStock", "20"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400))
+                                .andExpect(jsonPath("$.message")
+                                                .value("minStock cannot be greater than maxStock"));
+        }
+
+        @Test
+        void shouldAcceptEqualMinAndMaxStock() throws Exception {
+
+                Page<ProductResponse> page = new PageImpl<>(
+                                List.of(),
+                                PageRequest.of(0, 10),
+                                0);
+
+                when(productService.getAllProducts(
+                                any(Pageable.class),
+                                isNull(),
+                                isNull(),
+                                isNull(),
+                                eq(10),
+                                eq(10))).thenReturn(page);
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("minStock", "10")
+                                                .param("maxStock", "10"))
                                 .andExpect(status().isOk());
         }
 }

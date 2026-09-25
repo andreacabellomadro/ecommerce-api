@@ -30,4 +30,20 @@ public class ProductSpecification {
                 root.get("price"),
                 maxPrice);
     }
+
+    public static Specification<Product> stockGreaterThanOrEqualTo(
+            Integer minStock) {
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
+                root.get("stock"),
+                minStock);
+    }
+
+    public static Specification<Product> stockLessThanOrEqualTo(
+            Integer maxStock) {
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(
+                root.get("stock"),
+                maxStock);
+    }
 }

@@ -42,7 +42,9 @@ public class ProductController {
             @PageableDefault(size = 10, sort = "id") Pageable pageable,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minStock,
+            @RequestParam(required = false) Integer maxStock) {
 
         if (pageable.getPageSize() < 1 ||
                 pageable.getPageSize() > MAX_PAGE_SIZE) {
@@ -76,7 +78,26 @@ public class ProductController {
             throw new InvalidRequestParameterException(
                     "minPrice cannot be greater than maxPrice");
         }
-        return productService.getAllProducts(pageable, name, minPrice, maxPrice);
+
+        if (minStock != null && minStock < 0) {
+            throw new InvalidRequestParameterException(
+                    "minStock cannot be negative");
+        }
+
+        if (maxStock != null && maxStock < 0) {
+            throw new InvalidRequestParameterException(
+                    "maxStock cannot be negative");
+        }
+
+        if (minStock != null
+                && maxStock != null
+                && minStock > maxStock) {
+
+            throw new InvalidRequestParameterException(
+                    "minStock cannot be greater than maxStock");
+        }
+
+        return productService.getAllProducts(pageable, name, minPrice, maxPrice, minStock, maxStock);
     }
 
     @GetMapping("/{id}")

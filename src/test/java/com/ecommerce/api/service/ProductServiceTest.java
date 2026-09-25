@@ -225,7 +225,7 @@ class ProductServiceTest {
                                 ArgumentMatchers.<Specification<Product>>isNull(),
                                 ArgumentMatchers.eq(pageable))).thenReturn(page);
 
-                Page<ProductResponse> result = productService.getAllProducts(pageable, null, null, null);
+                Page<ProductResponse> result = productService.getAllProducts(pageable, null, null, null, null, null);
 
                 assertThat(result.getContent()).hasSize(2);
                 assertThat(result.getContent().get(0).getName())
@@ -268,6 +268,8 @@ class ProductServiceTest {
                                 pageable,
                                 "teclado",
                                 null,
+                                null,
+                                null,
                                 null);
 
                 assertThat(result.getContent()).hasSize(1);
@@ -305,7 +307,9 @@ class ProductServiceTest {
                                 pageable,
                                 "teclado",
                                 new BigDecimal("50"),
-                                new BigDecimal("100"));
+                                new BigDecimal("100"),
+                                3, 
+                                10); 
 
                 assertThat(result.getContent()).hasSize(1);
                 assertThat(result.getContent().get(0).getName())

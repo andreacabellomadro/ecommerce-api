@@ -36,7 +36,9 @@ public class ProductService {
             Pageable pageable,
             String name,
             BigDecimal minPrice,
-            BigDecimal maxPrice) {
+            BigDecimal maxPrice,
+            Integer minStock,
+            Integer maxStock) {
 
         Specification<Product> specification = null;
 
@@ -58,6 +60,22 @@ public class ProductService {
             specification = specification == null
                     ? priceSpecification
                     : specification.and(priceSpecification);
+        }
+
+        if (minStock != null) {
+            Specification<Product> stockSpecification = ProductSpecification.stockGreaterThanOrEqualTo(minStock);
+
+            specification = specification == null
+                    ? stockSpecification
+                    : specification.and(stockSpecification);
+        }
+
+        if (maxStock != null) {
+            Specification<Product> stockSpecification = ProductSpecification.stockLessThanOrEqualTo(maxStock);
+
+            specification = specification == null
+                    ? stockSpecification
+                    : specification.and(stockSpecification);
         }
 
         Page<Product> products = productRepository.findAll(specification, pageable);
