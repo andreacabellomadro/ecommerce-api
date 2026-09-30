@@ -1,6 +1,5 @@
 package com.ecommerce.api.controller;
 
-import java.math.BigDecimal;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,20 +34,12 @@ import lombok.RequiredArgsConstructor;
 public class ProductController {
 
     private final ProductService productService;
-    private static final int MAX_PAGE_SIZE = 50;
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "price", "stock");
 
     @GetMapping
     public Page<ProductResponse> getAllProducts(
             @PageableDefault(size = 10, sort = "id") Pageable pageable,
             @Valid @ModelAttribute ProductFilter productFilter) {
-
-        if (pageable.getPageSize() < 1 ||
-                pageable.getPageSize() > MAX_PAGE_SIZE) {
-
-            throw new InvalidRequestParameterException(
-                    "Page size must be between 1 and " + MAX_PAGE_SIZE);
-        }
 
         for (Sort.Order order : pageable.getSort()) {
 

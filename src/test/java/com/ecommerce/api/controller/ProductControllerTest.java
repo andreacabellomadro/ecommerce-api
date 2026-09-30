@@ -7,8 +7,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -310,6 +308,46 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.status").value(400))
                                 .andExpect(jsonPath("$.message")
                                                 .value("Page size must be between 1 and 50"));
+        }
+
+        @Test
+        void shouldRejectInvalidPageParameter() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("page", "hola"))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldRejectInvalidSizeParameter() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("size", "hola"))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldRejectNegativePage() throws Exception {
+
+                mockMvc.perform(
+                                get("/api/v1/products")
+                                                .param("page", "-1"))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldRejectZeroPageSize() throws Exception {
+
+                mockMvc.perform(get("/api/v1/products")
+                                .param("size", "0"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message")
+                                                .value("Page size must be between 1 and 50"));
+
+                verify(productService, never())
+                                .getAllProducts(any(Pageable.class), any(ProductFilter.class));
         }
 
         @Test
