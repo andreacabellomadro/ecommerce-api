@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
+import com.ecommerce.api.dto.ProductFilter;
 import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.InvalidRequestParameterException;
@@ -40,11 +42,7 @@ public class ProductController {
     @GetMapping
     public Page<ProductResponse> getAllProducts(
             @PageableDefault(size = 10, sort = "id") Pageable pageable,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) Integer minStock,
-            @RequestParam(required = false) Integer maxStock) {
+            @Valid @ModelAttribute ProductFilter productFilter) {
 
         if (pageable.getPageSize() < 1 ||
                 pageable.getPageSize() > MAX_PAGE_SIZE) {
@@ -61,43 +59,22 @@ public class ProductController {
             }
         }
 
-        if (minPrice != null && minPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidRequestParameterException(
-                    "minPrice cannot be negative");
-        }
-
-        if (maxPrice != null && maxPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidRequestParameterException(
-                    "maxPrice cannot be negative");
-        }
-
-        if (minPrice != null
-                && maxPrice != null
-                && minPrice.compareTo(maxPrice) > 0) {
+        if (productFilter.getMinPrice() != null
+                && productFilter.getMaxPrice() != null
+                && productFilter.getMinPrice().compareTo(productFilter.getMaxPrice()) > 0) {
 
             throw new InvalidRequestParameterException(
                     "minPrice cannot be greater than maxPrice");
         }
-
-        if (minStock != null && minStock < 0) {
-            throw new InvalidRequestParameterException(
-                    "minStock cannot be negative");
-        }
-
-        if (maxStock != null && maxStock < 0) {
-            throw new InvalidRequestParameterException(
-                    "maxStock cannot be negative");
-        }
-
-        if (minStock != null
-                && maxStock != null
-                && minStock > maxStock) {
+        if (productFilter.getMinStock() != null
+                && productFilter.getMaxStock() != null
+                && productFilter.getMinStock() > productFilter.getMaxStock()) {
 
             throw new InvalidRequestParameterException(
                     "minStock cannot be greater than maxStock");
         }
 
-        return productService.getAllProducts(pageable, name, minPrice, maxPrice, minStock, maxStock);
+        return productService.getAllProducts(pageable, productFilter);
     }
 
     @GetMapping("/{id}")

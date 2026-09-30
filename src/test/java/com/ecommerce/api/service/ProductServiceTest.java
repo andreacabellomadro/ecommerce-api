@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
+import com.ecommerce.api.dto.ProductFilter;
 import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
@@ -225,7 +226,10 @@ class ProductServiceTest {
                                 ArgumentMatchers.<Specification<Product>>isNull(),
                                 ArgumentMatchers.eq(pageable))).thenReturn(page);
 
-                Page<ProductResponse> result = productService.getAllProducts(pageable, null, null, null, null, null);
+                ProductFilter filter = ProductFilter.builder()
+                                .build();
+
+                Page<ProductResponse> result = productService.getAllProducts(pageable, filter);
 
                 assertThat(result.getContent()).hasSize(2);
                 assertThat(result.getContent().get(0).getName())
@@ -264,13 +268,13 @@ class ProductServiceTest {
                                 ArgumentMatchers.any(Specification.class),
                                 ArgumentMatchers.eq(pageable))).thenReturn(page);
 
+                ProductFilter filter = ProductFilter.builder()
+                                .name("teclado")
+                                .build();
+
                 Page<ProductResponse> result = productService.getAllProducts(
                                 pageable,
-                                "teclado",
-                                null,
-                                null,
-                                null,
-                                null);
+                                filter);
 
                 assertThat(result.getContent()).hasSize(1);
                 assertThat(result.getContent().get(0).getName())
@@ -303,13 +307,17 @@ class ProductServiceTest {
                                 ArgumentMatchers.<Specification<Product>>any(),
                                 ArgumentMatchers.eq(pageable))).thenReturn(page);
 
+                ProductFilter filter = ProductFilter.builder()
+                                .name("teclado")
+                                .minPrice(new BigDecimal("50"))
+                                .maxPrice(new BigDecimal("100"))
+                                .minStock(3)
+                                .maxStock(10)
+                                .build();
+
                 Page<ProductResponse> result = productService.getAllProducts(
                                 pageable,
-                                "teclado",
-                                new BigDecimal("50"),
-                                new BigDecimal("100"),
-                                3, 
-                                10); 
+                                filter);
 
                 assertThat(result.getContent()).hasSize(1);
                 assertThat(result.getContent().get(0).getName())

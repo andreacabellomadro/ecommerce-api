@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ecommerce.api.dto.ProductFilter;
 import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.service.ProductService;
 
@@ -84,12 +85,8 @@ class ProductControllerTest {
                                 2);
 
                 when(productService.getAllProducts(
-                                org.mockito.ArgumentMatchers.any(Pageable.class),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull()))
+                                any(Pageable.class),
+                                any(ProductFilter.class)))
                                 .thenReturn(page);
 
                 mockMvc.perform(
@@ -236,11 +233,8 @@ class ProductControllerTest {
 
                 when(productService.getAllProducts(
                                 any(Pageable.class),
-                                isNull(),
-                                isNull(),
-                                isNull(),
-                                isNull(),
-                                isNull())).thenReturn(page);
+                                any(ProductFilter.class)))
+                                .thenReturn(page);
 
                 mockMvc.perform(
                                 get("/api/v1/products")
@@ -254,11 +248,7 @@ class ProductControllerTest {
                 verify(productService)
                                 .getAllProducts(
                                                 pageableCaptor.capture(),
-                                                isNull(),
-                                                isNull(),
-                                                isNull(),
-                                                isNull(),
-                                                isNull());
+                                                any(ProductFilter.class));
 
                 Pageable pageable = pageableCaptor.getValue();
 
@@ -282,13 +272,12 @@ class ProductControllerTest {
                                 PageRequest.of(0, 10),
                                 1);
 
+                ArgumentCaptor<ProductFilter> filterCaptor = ArgumentCaptor.forClass(ProductFilter.class);
+
                 when(productService.getAllProducts(
-                                org.mockito.ArgumentMatchers.any(Pageable.class),
-                                org.mockito.ArgumentMatchers.eq("teclado"),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull(),
-                                org.mockito.ArgumentMatchers.isNull())).thenReturn(page);
+                                any(Pageable.class),
+                                any(ProductFilter.class)))
+                                .thenReturn(page);
 
                 mockMvc.perform(
                                 get("/api/v1/products")
@@ -299,6 +288,16 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.content.length()").value(1))
                                 .andExpect(jsonPath("$.content[0].name")
                                                 .value("Teclado mecánico"));
+
+                verify(productService)
+                                .getAllProducts(
+                                                any(Pageable.class),
+                                                filterCaptor.capture());
+
+                ProductFilter filter = filterCaptor.getValue();
+
+                assertThat(filter.getName())
+                                .isEqualTo("teclado");
         }
 
         @Test
@@ -334,6 +333,8 @@ class ProductControllerTest {
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.status").value(400))
                                 .andExpect(jsonPath("$.message")
+                                                .value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.minPrice")
                                                 .value("minPrice cannot be negative"));
         }
 
@@ -346,6 +347,8 @@ class ProductControllerTest {
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.status").value(400))
                                 .andExpect(jsonPath("$.message")
+                                                .value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.maxPrice")
                                                 .value("maxPrice cannot be negative"));
         }
 
@@ -372,11 +375,8 @@ class ProductControllerTest {
 
                 when(productService.getAllProducts(
                                 any(Pageable.class),
-                                isNull(),
-                                eq(new BigDecimal("50")),
-                                eq(new BigDecimal("50")),
-                                isNull(),
-                                isNull())).thenReturn(page);
+                                any(ProductFilter.class)))
+                                .thenReturn(page);
 
                 mockMvc.perform(
                                 get("/api/v1/products")
@@ -394,6 +394,8 @@ class ProductControllerTest {
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.status").value(400))
                                 .andExpect(jsonPath("$.message")
+                                                .value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.minStock")
                                                 .value("minStock cannot be negative"));
         }
 
@@ -406,6 +408,8 @@ class ProductControllerTest {
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.status").value(400))
                                 .andExpect(jsonPath("$.message")
+                                                .value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.maxStock")
                                                 .value("maxStock cannot be negative"));
         }
 
@@ -432,11 +436,8 @@ class ProductControllerTest {
 
                 when(productService.getAllProducts(
                                 any(Pageable.class),
-                                isNull(),
-                                isNull(),
-                                isNull(),
-                                eq(10),
-                                eq(10))).thenReturn(page);
+                                any(ProductFilter.class)))
+                                .thenReturn(page);
 
                 mockMvc.perform(
                                 get("/api/v1/products")

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
+import com.ecommerce.api.dto.ProductFilter;
 import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
@@ -34,44 +35,40 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductResponse> getAllProducts(
             Pageable pageable,
-            String name,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
-            Integer minStock,
-            Integer maxStock) {
+            ProductFilter productFilter) {
 
         Specification<Product> specification = null;
 
-        if (name != null && !name.isBlank()) {
-            specification = ProductSpecification.nameContains(name);
+        if (productFilter.getName() != null && !productFilter.getName().isBlank()) {
+            specification = ProductSpecification.nameContains(productFilter.getName());
         }
 
-        if (minPrice != null) {
-            Specification<Product> priceSpecification = ProductSpecification.priceGreaterThanOrEqualTo(minPrice);
+        if (productFilter.getMinPrice() != null) {
+            Specification<Product> priceSpecification = ProductSpecification.priceGreaterThanOrEqualTo(productFilter.getMinPrice());
 
             specification = specification == null
                     ? priceSpecification
                     : specification.and(priceSpecification);
         }
 
-        if (maxPrice != null) {
-            Specification<Product> priceSpecification = ProductSpecification.priceLessThanOrEqualTo(maxPrice);
+        if (productFilter.getMaxPrice() != null) {
+            Specification<Product> priceSpecification = ProductSpecification.priceLessThanOrEqualTo(productFilter.getMaxPrice());
 
             specification = specification == null
                     ? priceSpecification
                     : specification.and(priceSpecification);
         }
 
-        if (minStock != null) {
-            Specification<Product> stockSpecification = ProductSpecification.stockGreaterThanOrEqualTo(minStock);
+        if (productFilter.getMinStock() != null) {
+            Specification<Product> stockSpecification = ProductSpecification.stockGreaterThanOrEqualTo(productFilter.getMinStock());
 
             specification = specification == null
                     ? stockSpecification
                     : specification.and(stockSpecification);
         }
 
-        if (maxStock != null) {
-            Specification<Product> stockSpecification = ProductSpecification.stockLessThanOrEqualTo(maxStock);
+        if (productFilter.getMaxStock() != null) {
+            Specification<Product> stockSpecification = ProductSpecification.stockLessThanOrEqualTo(productFilter.getMaxStock());
 
             specification = specification == null
                     ? stockSpecification
