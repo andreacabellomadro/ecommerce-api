@@ -95,7 +95,7 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.content.length()").value(2))
                                 .andExpect(jsonPath("$.content[0].name").value("Teclado"))
                                 .andExpect(jsonPath("$.content[1].name").value("Ratón"))
-                                .andExpect(jsonPath("$.number").value(0))
+                                .andExpect(jsonPath("$.page").value(0))
                                 .andExpect(jsonPath("$.size").value(10))
                                 .andExpect(jsonPath("$.totalElements").value(2))
                                 .andExpect(jsonPath("$.totalPages").value(1));

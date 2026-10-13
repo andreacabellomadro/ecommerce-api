@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.api.dto.ProductCreateRequest;
 import com.ecommerce.api.dto.ProductFilter;
+import com.ecommerce.api.dto.ProductPageResponse;
 import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.InvalidRequestParameterException;
@@ -37,7 +38,7 @@ public class ProductController {
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "price", "stock");
 
     @GetMapping
-    public Page<ProductResponse> getAllProducts(
+    public ProductPageResponse getAllProducts(
             @PageableDefault(size = 10, sort = "id") Pageable pageable,
             @Valid @ModelAttribute ProductFilter productFilter) {
 
@@ -64,7 +65,15 @@ public class ProductController {
                     "minStock cannot be greater than maxStock");
         }
 
-        return productService.getAllProducts(pageable, productFilter);
+        Page<ProductResponse> products = productService.getAllProducts(pageable, productFilter);
+
+        return ProductPageResponse.builder()
+        .content(products.getContent())
+        .page(products.getNumber())
+        .size(products.getSize())
+        .totalElements(products.getTotalElements())
+        .totalPages(products.getTotalPages())
+        .build();
     }
 
     @GetMapping("/{id}")
