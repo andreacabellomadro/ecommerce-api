@@ -483,4 +483,29 @@ class ProductControllerTest {
                                                 .param("maxStock", "10"))
                                 .andExpect(status().isOk());
         }
+
+        @Test
+        void shouldReturnNotFoundWhenProductDoesNotExist() throws Exception {
+
+                when(productService.getProductById(999999L))
+                                .thenThrow(new com.ecommerce.api.exception.ProductNotFoundException(
+                                                "Product not found"));
+
+                mockMvc.perform(get("/api/v1/products/999999"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldRejectInvalidPriceRangeWithoutCallingService() throws Exception {
+
+                mockMvc.perform(get("/api/v1/products")
+                                .param("minPrice", "100")
+                                .param("maxPrice", "20"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message")
+                                                .value("minPrice cannot be greater than maxPrice"));
+
+                verify(productService, never())
+                                .getAllProducts(any(Pageable.class), any(ProductFilter.class));
+        }
 }

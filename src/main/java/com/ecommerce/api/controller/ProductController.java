@@ -26,17 +26,28 @@ import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.InvalidRequestParameterException;
 import com.ecommerce.api.service.ProductService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
+@Tag (name = "Products", description = "Endpoints for managing products")
 public class ProductController {
 
     private final ProductService productService;
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "price", "stock");
 
+    @Operation(summary = "Get all products", 
+    description = "Retrieve a paginated list of products with optional filtering and sorting by name, price, and stock.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+        @ApiResponse(responseCode = "400", description = "Invalid request, sorting or filtering parameters")
+    })
     @GetMapping
     public ProductPageResponse getAllProducts(
             @PageableDefault(size = 10, sort = "id") Pageable pageable,
@@ -76,11 +87,23 @@ public class ProductController {
         .build();
     }
 
+    @Operation(summary = "Get product by ID", 
+    description = "Retrieve a product by its ID.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved product"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @GetMapping("/{id}")
     public ProductResponse getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
     }
 
+    @Operation(summary = "Create a new product", 
+    description = "Create a new product with the provided details.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Product created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters")
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse createProduct(@Valid @RequestBody ProductCreateRequest productCreateRequest) {
@@ -88,12 +111,25 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update a product", 
+    description = "Update an existing product with the provided details.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Product updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     public ProductResponse updateProduct(@PathVariable Long id,
             @Valid @RequestBody ProductUpdateRequest productUpdateRequest) {
         return productService.updateProduct(id, productUpdateRequest);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a product", 
+    description = "Delete an existing product.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Product deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
     }
