@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -28,9 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ecommerce.api.dto.ProductFilter;
 import com.ecommerce.api.dto.ProductResponse;
+import com.ecommerce.api.security.JwtAuthenticationFilter;
 import com.ecommerce.api.service.ProductService;
 
 @WebMvcTest(ProductController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class ProductControllerTest {
 
         @Autowired
@@ -38,6 +41,9 @@ class ProductControllerTest {
 
         @MockitoBean
         private ProductService productService;
+
+        @MockitoBean
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
         @Test
         void shouldGetProductById() throws Exception {
