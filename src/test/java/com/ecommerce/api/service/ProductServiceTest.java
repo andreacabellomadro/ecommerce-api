@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
@@ -26,13 +27,18 @@ import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
 import com.ecommerce.api.model.Product;
+import com.ecommerce.api.model.User;
 import com.ecommerce.api.repository.ProductRepository;
+import com.ecommerce.api.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
         @Mock
         private ProductRepository productRepository;
+
+        @Mock
+        private UserRepository userRepository;
 
         @InjectMocks
         private ProductService productService;
@@ -83,17 +89,28 @@ class ProductServiceTest {
                                 .stock(10)
                                 .build();
 
+                User owner = new User();
+                owner.setId(1L);
+                owner.setName("Usuario prueba");
+                owner.setEmail("test@example.com");
+
                 Product savedProduct = Product.builder()
                                 .id(1L)
                                 .name("Teclado")
                                 .price(new BigDecimal("49.99"))
                                 .stock(10)
+                                .owner(owner)
                                 .build();
 
-                when(productRepository.save(org.mockito.ArgumentMatchers.any(Product.class)))
+                when(userRepository.findByEmail("test@example.com"))
+                                .thenReturn(Optional.of(owner));
+
+                when(productRepository.save(any(Product.class)))
                                 .thenReturn(savedProduct);
 
-                ProductResponse response = productService.createProduct(request);
+                ProductResponse response = productService.createProduct(
+                                request,
+                                "test@example.com");
 
                 ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
 
@@ -101,14 +118,10 @@ class ProductServiceTest {
 
                 Product productSentToRepository = productCaptor.getValue();
 
-                assertThat(productSentToRepository.getName())
-                                .isEqualTo("Teclado");
-
-                assertThat(productSentToRepository.getPrice())
-                                .isEqualByComparingTo("49.99");
-
-                assertThat(productSentToRepository.getStock())
-                                .isEqualTo(10);
+                assertThat(productSentToRepository.getName()).isEqualTo("Teclado");
+                assertThat(productSentToRepository.getPrice()).isEqualByComparingTo("49.99");
+                assertThat(productSentToRepository.getStock()).isEqualTo(10);
+                assertThat(productSentToRepository.getOwner()).isEqualTo(owner);
 
                 assertThat(response.getId()).isEqualTo(1L);
         }

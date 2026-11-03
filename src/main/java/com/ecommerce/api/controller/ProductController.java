@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -36,17 +37,16 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-@Tag (name = "Products", description = "Endpoints for managing products")
+@Tag(name = "Products", description = "Endpoints for managing products")
 public class ProductController {
 
     private final ProductService productService;
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "price", "stock");
 
-    @Operation(summary = "Get all products", 
-    description = "Retrieve a paginated list of products with optional filtering and sorting by name, price, and stock.")
+    @Operation(summary = "Get all products", description = "Retrieve a paginated list of products with optional filtering and sorting by name, price, and stock.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
-        @ApiResponse(responseCode = "400", description = "Invalid request, sorting or filtering parameters")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+            @ApiResponse(responseCode = "400", description = "Invalid request, sorting or filtering parameters")
     })
     @GetMapping
     public ProductPageResponse getAllProducts(
@@ -79,44 +79,46 @@ public class ProductController {
         Page<ProductResponse> products = productService.getAllProducts(pageable, productFilter);
 
         return ProductPageResponse.builder()
-        .content(products.getContent())
-        .page(products.getNumber())
-        .size(products.getSize())
-        .totalElements(products.getTotalElements())
-        .totalPages(products.getTotalPages())
-        .build();
+                .content(products.getContent())
+                .page(products.getNumber())
+                .size(products.getSize())
+                .totalElements(products.getTotalElements())
+                .totalPages(products.getTotalPages())
+                .build();
     }
 
-    @Operation(summary = "Get product by ID", 
-    description = "Retrieve a product by its ID.")
+    @Operation(summary = "Get product by ID", description = "Retrieve a product by its ID.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved product"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved product"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
     })
     @GetMapping("/{id}")
     public ProductResponse getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
     }
 
-    @Operation(summary = "Create a new product", 
-    description = "Create a new product with the provided details.")
+    @Operation(summary = "Create a new product", description = "Create a new product with the provided details.")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Product created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request parameters")
+            @ApiResponse(responseCode = "201", description = "Product created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters")
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductResponse createProduct(@Valid @RequestBody ProductCreateRequest productCreateRequest) {
-        return productService.createProduct(productCreateRequest);
+    public ProductResponse createProduct(
+            @Valid @RequestBody ProductCreateRequest productCreateRequest,
+            Authentication authentication) {
+
+        return productService.createProduct(
+                productCreateRequest,
+                authentication.getName());
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update a product", 
-    description = "Update an existing product with the provided details.")
+    @Operation(summary = "Update a product", description = "Update an existing product with the provided details.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Product updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+            @ApiResponse(responseCode = "200", description = "Product updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ProductResponse updateProduct(@PathVariable Long id,
             @Valid @RequestBody ProductUpdateRequest productUpdateRequest) {
@@ -124,11 +126,10 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a product", 
-    description = "Delete an existing product.")
+    @Operation(summary = "Delete a product", description = "Delete an existing product.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Product deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+            @ApiResponse(responseCode = "200", description = "Product deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);

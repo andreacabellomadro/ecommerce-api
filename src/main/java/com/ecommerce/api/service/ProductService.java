@@ -1,7 +1,5 @@
 package com.ecommerce.api.service;
 
-import java.math.BigDecimal;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,7 +12,9 @@ import com.ecommerce.api.dto.ProductResponse;
 import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.exception.ProductNotFoundException;
 import com.ecommerce.api.model.Product;
+import com.ecommerce.api.model.User;
 import com.ecommerce.api.repository.ProductRepository;
+import com.ecommerce.api.repository.UserRepository;
 import com.ecommerce.api.specification.ProductSpecification;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
@@ -44,7 +45,8 @@ public class ProductService {
         }
 
         if (productFilter.getMinPrice() != null) {
-            Specification<Product> priceSpecification = ProductSpecification.priceGreaterThanOrEqualTo(productFilter.getMinPrice());
+            Specification<Product> priceSpecification = ProductSpecification
+                    .priceGreaterThanOrEqualTo(productFilter.getMinPrice());
 
             specification = specification == null
                     ? priceSpecification
@@ -52,7 +54,8 @@ public class ProductService {
         }
 
         if (productFilter.getMaxPrice() != null) {
-            Specification<Product> priceSpecification = ProductSpecification.priceLessThanOrEqualTo(productFilter.getMaxPrice());
+            Specification<Product> priceSpecification = ProductSpecification
+                    .priceLessThanOrEqualTo(productFilter.getMaxPrice());
 
             specification = specification == null
                     ? priceSpecification
@@ -60,7 +63,8 @@ public class ProductService {
         }
 
         if (productFilter.getMinStock() != null) {
-            Specification<Product> stockSpecification = ProductSpecification.stockGreaterThanOrEqualTo(productFilter.getMinStock());
+            Specification<Product> stockSpecification = ProductSpecification
+                    .stockGreaterThanOrEqualTo(productFilter.getMinStock());
 
             specification = specification == null
                     ? stockSpecification
@@ -68,7 +72,8 @@ public class ProductService {
         }
 
         if (productFilter.getMaxStock() != null) {
-            Specification<Product> stockSpecification = ProductSpecification.stockLessThanOrEqualTo(productFilter.getMaxStock());
+            Specification<Product> stockSpecification = ProductSpecification
+                    .stockLessThanOrEqualTo(productFilter.getMaxStock());
 
             specification = specification == null
                     ? stockSpecification
@@ -81,12 +86,20 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse createProduct(ProductCreateRequest productCreateRequest) {
+    public ProductResponse createProduct(
+            ProductCreateRequest productCreateRequest,
+            String userEmail) {
+
+        User owner = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         Product product = Product.builder()
                 .name(productCreateRequest.getName())
                 .price(productCreateRequest.getPrice())
                 .stock(productCreateRequest.getStock())
+                .owner(owner)
                 .build();
+
         return entityToResponse(productRepository.save(product));
     }
 

@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -117,7 +118,7 @@ class ProductControllerTest {
                                 .stock(10)
                                 .build();
 
-                when(productService.createProduct(org.mockito.ArgumentMatchers.any()))
+                when(productService.createProduct(any(), org.mockito.ArgumentMatchers.eq("test@example.com")))
                                 .thenReturn(response);
 
                 String requestJson = """
@@ -130,6 +131,8 @@ class ProductControllerTest {
 
                 mockMvc.perform(
                                 post("/api/v1/products")
+                                                .principal(new UsernamePasswordAuthenticationToken("test@example.com",
+                                                                null))
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .content(requestJson))
                                 .andExpect(status().isCreated())
@@ -157,7 +160,9 @@ class ProductControllerTest {
                                 .andExpect(status().isBadRequest());
 
                 verify(productService, never())
-                                .createProduct(org.mockito.ArgumentMatchers.any());
+                                .createProduct(
+                                                any(),
+                                                org.mockito.ArgumentMatchers.anyString());
         }
 
         @Test
