@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ecommerce.api.dto.ProductFilter;
 import com.ecommerce.api.dto.ProductResponse;
+import com.ecommerce.api.dto.ProductUpdateRequest;
 import com.ecommerce.api.security.JwtAuthenticationFilter;
 import com.ecommerce.api.service.ProductService;
 
@@ -177,7 +178,8 @@ class ProductControllerTest {
 
                 when(productService.updateProduct(
                                 org.mockito.ArgumentMatchers.eq(1L),
-                                org.mockito.ArgumentMatchers.any())).thenReturn(response);
+                                org.mockito.ArgumentMatchers.any(ProductUpdateRequest.class),
+                                org.mockito.ArgumentMatchers.eq("test@example.com"))).thenReturn(response);
 
                 String requestJson = """
                                 {
@@ -189,6 +191,8 @@ class ProductControllerTest {
 
                 mockMvc.perform(
                                 put("/api/v1/products/1")
+                                                .principal(new UsernamePasswordAuthenticationToken("test@example.com",
+                                                                null))
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .content(requestJson))
                                 .andExpect(status().isOk())
@@ -202,11 +206,13 @@ class ProductControllerTest {
         void shouldDeleteProduct() throws Exception {
 
                 mockMvc.perform(
-                                delete("/api/v1/products/1"))
-                                .andExpect(status().isOk());
+                                delete("/api/v1/products/1")
+                                                .principal(new UsernamePasswordAuthenticationToken("test@example.com",
+                                                                null)))
+                                .andExpect(status().isNoContent());
 
                 verify(productService)
-                                .deleteProduct(1L);
+                                .deleteProduct(1L, "test@example.com");
         }
 
         @Test
@@ -229,7 +235,8 @@ class ProductControllerTest {
                 verify(productService, never())
                                 .updateProduct(
                                                 org.mockito.ArgumentMatchers.eq(1L),
-                                                org.mockito.ArgumentMatchers.any());
+                                                org.mockito.ArgumentMatchers.any(ProductUpdateRequest.class),
+                                                org.mockito.ArgumentMatchers.eq("test@example.com"));
         }
 
         @Test

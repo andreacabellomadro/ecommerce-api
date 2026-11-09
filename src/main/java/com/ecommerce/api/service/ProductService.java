@@ -23,110 +23,120 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+        private final ProductRepository productRepository;
+        private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
-    public ProductResponse getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        return entityToResponse(product);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ProductResponse> getAllProducts(
-            Pageable pageable,
-            ProductFilter productFilter) {
-
-        Specification<Product> specification = null;
-
-        if (productFilter.getName() != null && !productFilter.getName().isBlank()) {
-            specification = ProductSpecification.nameContains(productFilter.getName());
+        @Transactional(readOnly = true)
+        public ProductResponse getProductById(Long id) {
+                Product product = productRepository.findById(id)
+                                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+                return entityToResponse(product);
         }
 
-        if (productFilter.getMinPrice() != null) {
-            Specification<Product> priceSpecification = ProductSpecification
-                    .priceGreaterThanOrEqualTo(productFilter.getMinPrice());
+        @Transactional(readOnly = true)
+        public Page<ProductResponse> getAllProducts(
+                        Pageable pageable,
+                        ProductFilter productFilter) {
 
-            specification = specification == null
-                    ? priceSpecification
-                    : specification.and(priceSpecification);
+                Specification<Product> specification = null;
+
+                if (productFilter.getName() != null && !productFilter.getName().isBlank()) {
+                        specification = ProductSpecification.nameContains(productFilter.getName());
+                }
+
+                if (productFilter.getMinPrice() != null) {
+                        Specification<Product> priceSpecification = ProductSpecification
+                                        .priceGreaterThanOrEqualTo(productFilter.getMinPrice());
+
+                        specification = specification == null
+                                        ? priceSpecification
+                                        : specification.and(priceSpecification);
+                }
+
+                if (productFilter.getMaxPrice() != null) {
+                        Specification<Product> priceSpecification = ProductSpecification
+                                        .priceLessThanOrEqualTo(productFilter.getMaxPrice());
+
+                        specification = specification == null
+                                        ? priceSpecification
+                                        : specification.and(priceSpecification);
+                }
+
+                if (productFilter.getMinStock() != null) {
+                        Specification<Product> stockSpecification = ProductSpecification
+                                        .stockGreaterThanOrEqualTo(productFilter.getMinStock());
+
+                        specification = specification == null
+                                        ? stockSpecification
+                                        : specification.and(stockSpecification);
+                }
+
+                if (productFilter.getMaxStock() != null) {
+                        Specification<Product> stockSpecification = ProductSpecification
+                                        .stockLessThanOrEqualTo(productFilter.getMaxStock());
+
+                        specification = specification == null
+                                        ? stockSpecification
+                                        : specification.and(stockSpecification);
+                }
+
+                Page<Product> products = productRepository.findAll(specification, pageable);
+
+                return products.map(this::entityToResponse);
         }
 
-        if (productFilter.getMaxPrice() != null) {
-            Specification<Product> priceSpecification = ProductSpecification
-                    .priceLessThanOrEqualTo(productFilter.getMaxPrice());
+        @Transactional
+        public ProductResponse createProduct(
+                        ProductCreateRequest productCreateRequest,
+                        String userEmail) {
 
-            specification = specification == null
-                    ? priceSpecification
-                    : specification.and(priceSpecification);
+                User owner = userRepository.findByEmail(userEmail)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                Product product = Product.builder()
+                                .name(productCreateRequest.getName())
+                                .price(productCreateRequest.getPrice())
+                                .stock(productCreateRequest.getStock())
+                                .owner(owner)
+                                .build();
+
+                return entityToResponse(productRepository.save(product));
         }
 
-        if (productFilter.getMinStock() != null) {
-            Specification<Product> stockSpecification = ProductSpecification
-                    .stockGreaterThanOrEqualTo(productFilter.getMinStock());
+        @Transactional
+        public ProductResponse updateProduct(
+                        Long id,
+                        ProductUpdateRequest productUpdateRequest,
+                        String userEmail) {
 
-            specification = specification == null
-                    ? stockSpecification
-                    : specification.and(stockSpecification);
+                Product product = productRepository.findByIdAndOwnerEmail(id, userEmail)
+                                .orElseThrow(() -> new ProductNotFoundException(
+                                                "Product not found with id: " + id));
+
+                product.setName(productUpdateRequest.getName());
+                product.setPrice(productUpdateRequest.getPrice());
+                product.setStock(productUpdateRequest.getStock());
+
+                return entityToResponse(product);
         }
 
-        if (productFilter.getMaxStock() != null) {
-            Specification<Product> stockSpecification = ProductSpecification
-                    .stockLessThanOrEqualTo(productFilter.getMaxStock());
+        @Transactional
+        public void deleteProduct(Long id, String userEmail) {
 
-            specification = specification == null
-                    ? stockSpecification
-                    : specification.and(stockSpecification);
+                Product product = productRepository.findByIdAndOwnerEmail(id, userEmail)
+                                .orElseThrow(() -> new ProductNotFoundException(
+                                                "Product not found with id: " + id));
+
+                productRepository.delete(product);
         }
 
-        Page<Product> products = productRepository.findAll(specification, pageable);
-
-        return products.map(this::entityToResponse);
-    }
-
-    @Transactional
-    public ProductResponse createProduct(
-            ProductCreateRequest productCreateRequest,
-            String userEmail) {
-
-        User owner = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Product product = Product.builder()
-                .name(productCreateRequest.getName())
-                .price(productCreateRequest.getPrice())
-                .stock(productCreateRequest.getStock())
-                .owner(owner)
-                .build();
-
-        return entityToResponse(productRepository.save(product));
-    }
-
-    @Transactional
-    public ProductResponse updateProduct(Long id, ProductUpdateRequest productUpdateRequest) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        product.setName(productUpdateRequest.getName());
-        product.setPrice(productUpdateRequest.getPrice());
-        product.setStock(productUpdateRequest.getStock());
-        return entityToResponse(product);
-    }
-
-    @Transactional
-    public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        productRepository.delete(product);
-    }
-
-    public ProductResponse entityToResponse(Product product) {
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .price(product.getPrice())
-                .stock(product.getStock())
-                .build();
-    }
+        public ProductResponse entityToResponse(Product product) {
+                return ProductResponse.builder()
+                                .id(product.getId())
+                                .name(product.getName())
+                                .price(product.getPrice())
+                                .stock(product.getStock())
+                                .build();
+        }
 
 }

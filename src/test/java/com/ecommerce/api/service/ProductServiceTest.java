@@ -142,10 +142,11 @@ class ProductServiceTest {
                                 .stock(10)
                                 .build();
 
-                when(productRepository.findById(1L))
+                when(productRepository.findByIdAndOwnerEmail(1L, "test@example.com"))
                                 .thenReturn(Optional.of(existingProduct));
 
-                ProductResponse response = productService.updateProduct(1L, request);
+                ProductResponse response = productService.updateProduct(
+                                1L, request, "test@example.com");
 
                 assertThat(response.getId()).isEqualTo(1L);
                 assertThat(response.getName()).isEqualTo("Teclado nuevo");
@@ -153,7 +154,7 @@ class ProductServiceTest {
                                 .isEqualByComparingTo("50.00");
                 assertThat(response.getStock()).isEqualTo(10);
 
-                verify(productRepository).findById(1L);
+                verify(productRepository).findByIdAndOwnerEmail(1L, "test@example.com");
         }
 
         @Test
@@ -165,14 +166,14 @@ class ProductServiceTest {
                                 .stock(10)
                                 .build();
 
-                when(productRepository.findById(999L))
+                when(productRepository.findByIdAndOwnerEmail(999L, "test@example.com"))
                                 .thenReturn(Optional.empty());
 
                 org.junit.jupiter.api.Assertions.assertThrows(
                                 ProductNotFoundException.class,
-                                () -> productService.updateProduct(999L, request));
+                                () -> productService.updateProduct(999L, request, "test@example.com"));
 
-                verify(productRepository).findById(999L);
+                verify(productRepository).findByIdAndOwnerEmail(999L, "test@example.com");
         }
 
         @Test
@@ -185,26 +186,26 @@ class ProductServiceTest {
                                 .stock(10)
                                 .build();
 
-                when(productRepository.findById(1L))
+                when(productRepository.findByIdAndOwnerEmail(1L, "test@example.com"))
                                 .thenReturn(Optional.of(product));
 
-                productService.deleteProduct(1L);
+                productService.deleteProduct(1L, "test@example.com");
 
-                verify(productRepository).findById(1L);
+                verify(productRepository).findByIdAndOwnerEmail(1L, "test@example.com");
                 verify(productRepository).delete(product);
         }
 
         @Test
         void shouldThrowExceptionWhenDeletingNonExistingProduct() {
 
-                when(productRepository.findById(999L))
+                when(productRepository.findByIdAndOwnerEmail(999L, "test@example.com"))
                                 .thenReturn(Optional.empty());
 
                 org.junit.jupiter.api.Assertions.assertThrows(
                                 ProductNotFoundException.class,
-                                () -> productService.deleteProduct(999L));
+                                () -> productService.deleteProduct(999L, "test@example.com"));
 
-                verify(productRepository).findById(999L);
+                verify(productRepository).findByIdAndOwnerEmail(999L, "test@example.com");
 
                 verify(productRepository,
                                 org.mockito.Mockito.never())
