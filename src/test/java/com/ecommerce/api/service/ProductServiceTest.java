@@ -213,6 +213,43 @@ class ProductServiceTest {
         }
 
         @Test
+        void shouldNotUpdateProductOwnedByAnotherUser() {
+
+                ProductUpdateRequest request = ProductUpdateRequest.builder()
+                                .name("Intento de cambio")
+                                .price(new BigDecimal("50.00"))
+                                .stock(10)
+                                .build();
+
+                when(productRepository.findByIdAndOwnerEmail(1L, "usuario2@example.com"))
+                                .thenReturn(Optional.empty());
+
+                org.junit.jupiter.api.Assertions.assertThrows(
+                                ProductNotFoundException.class,
+                                () -> productService.updateProduct(1L, request, "usuario2@example.com"));
+
+                verify(productRepository)
+                                .findByIdAndOwnerEmail(1L, "usuario2@example.com");
+        }
+
+        @Test
+        void shouldNotDeleteProductOwnedByAnotherUser() {
+
+                when(productRepository.findByIdAndOwnerEmail(1L, "usuario2@example.com"))
+                                .thenReturn(Optional.empty());
+
+                org.junit.jupiter.api.Assertions.assertThrows(
+                                ProductNotFoundException.class,
+                                () -> productService.deleteProduct(1L, "usuario2@example.com"));
+
+                verify(productRepository)
+                                .findByIdAndOwnerEmail(1L, "usuario2@example.com");
+
+                verify(productRepository, org.mockito.Mockito.never())
+                                .delete(org.mockito.ArgumentMatchers.any(Product.class));
+        }
+
+        @Test
         void shouldGetAllProducts() {
 
                 Product product1 = Product.builder()
