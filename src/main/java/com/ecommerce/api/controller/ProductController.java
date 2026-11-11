@@ -125,10 +125,14 @@ public class ProductController {
                         @Valid @RequestBody ProductUpdateRequest productUpdateRequest,
                         Authentication authentication) {
 
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
                 return productService.updateProduct(
                                 id,
                                 productUpdateRequest,
-                                authentication.getName());
+                                authentication.getName(),
+                                isAdmin);
         }
 
         @DeleteMapping("/{id}")
@@ -142,7 +146,13 @@ public class ProductController {
                         @PathVariable Long id,
                         Authentication authentication) {
 
-                productService.deleteProduct(id, authentication.getName());
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+                productService.deleteProduct(
+                                id,
+                                authentication.getName(),
+                                isAdmin);
         }
 
 }

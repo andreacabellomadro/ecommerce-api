@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ecommerce.api.dto.UserCreateRequest;
 import com.ecommerce.api.dto.UserResponse;
 import com.ecommerce.api.exception.InvalidRequestParameterException;
+import com.ecommerce.api.model.Role;
 import com.ecommerce.api.model.User;
 import com.ecommerce.api.repository.UserRepository;
 
@@ -31,6 +32,7 @@ public class UserService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
 
         User savedUser = userRepository.save(user);
 

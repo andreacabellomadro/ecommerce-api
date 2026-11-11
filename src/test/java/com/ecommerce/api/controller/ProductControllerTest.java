@@ -179,7 +179,9 @@ class ProductControllerTest {
                 when(productService.updateProduct(
                                 org.mockito.ArgumentMatchers.eq(1L),
                                 org.mockito.ArgumentMatchers.any(ProductUpdateRequest.class),
-                                org.mockito.ArgumentMatchers.eq("test@example.com"))).thenReturn(response);
+                                org.mockito.ArgumentMatchers.eq("test@example.com"),
+                                org.mockito.ArgumentMatchers.eq(false)))
+                                .thenReturn(response);
 
                 String requestJson = """
                                 {
@@ -212,7 +214,7 @@ class ProductControllerTest {
                                 .andExpect(status().isNoContent());
 
                 verify(productService)
-                                .deleteProduct(1L, "test@example.com");
+                                .deleteProduct(1L, "test@example.com", false);
         }
 
         @Test
@@ -236,7 +238,8 @@ class ProductControllerTest {
                                 .updateProduct(
                                                 org.mockito.ArgumentMatchers.eq(1L),
                                                 org.mockito.ArgumentMatchers.any(ProductUpdateRequest.class),
-                                                org.mockito.ArgumentMatchers.eq("test@example.com"));
+                                                org.mockito.ArgumentMatchers.eq("test@example.com"),
+                                                org.mockito.ArgumentMatchers.eq(false));
         }
 
         @Test

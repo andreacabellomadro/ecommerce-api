@@ -146,7 +146,7 @@ class ProductServiceTest {
                                 .thenReturn(Optional.of(existingProduct));
 
                 ProductResponse response = productService.updateProduct(
-                                1L, request, "test@example.com");
+                                1L, request, "test@example.com", false);
 
                 assertThat(response.getId()).isEqualTo(1L);
                 assertThat(response.getName()).isEqualTo("Teclado nuevo");
@@ -171,7 +171,7 @@ class ProductServiceTest {
 
                 org.junit.jupiter.api.Assertions.assertThrows(
                                 ProductNotFoundException.class,
-                                () -> productService.updateProduct(999L, request, "test@example.com"));
+                                () -> productService.updateProduct(999L, request, "test@example.com", false));
 
                 verify(productRepository).findByIdAndOwnerEmail(999L, "test@example.com");
         }
@@ -189,7 +189,7 @@ class ProductServiceTest {
                 when(productRepository.findByIdAndOwnerEmail(1L, "test@example.com"))
                                 .thenReturn(Optional.of(product));
 
-                productService.deleteProduct(1L, "test@example.com");
+                productService.deleteProduct(1L, "test@example.com", false);
 
                 verify(productRepository).findByIdAndOwnerEmail(1L, "test@example.com");
                 verify(productRepository).delete(product);
@@ -203,7 +203,7 @@ class ProductServiceTest {
 
                 org.junit.jupiter.api.Assertions.assertThrows(
                                 ProductNotFoundException.class,
-                                () -> productService.deleteProduct(999L, "test@example.com"));
+                                () -> productService.deleteProduct(999L, "test@example.com", false));
 
                 verify(productRepository).findByIdAndOwnerEmail(999L, "test@example.com");
 
@@ -226,7 +226,7 @@ class ProductServiceTest {
 
                 org.junit.jupiter.api.Assertions.assertThrows(
                                 ProductNotFoundException.class,
-                                () -> productService.updateProduct(1L, request, "usuario2@example.com"));
+                                () -> productService.updateProduct(1L, request, "usuario2@example.com", false));
 
                 verify(productRepository)
                                 .findByIdAndOwnerEmail(1L, "usuario2@example.com");
@@ -240,7 +240,7 @@ class ProductServiceTest {
 
                 org.junit.jupiter.api.Assertions.assertThrows(
                                 ProductNotFoundException.class,
-                                () -> productService.deleteProduct(1L, "usuario2@example.com"));
+                                () -> productService.deleteProduct(1L, "usuario2@example.com", false));
 
                 verify(productRepository)
                                 .findByIdAndOwnerEmail(1L, "usuario2@example.com");

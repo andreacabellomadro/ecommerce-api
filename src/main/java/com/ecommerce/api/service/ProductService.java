@@ -107,11 +107,16 @@ public class ProductService {
         public ProductResponse updateProduct(
                         Long id,
                         ProductUpdateRequest productUpdateRequest,
-                        String userEmail) {
+                        String userEmail,
+                        boolean isAdmin) {
 
-                Product product = productRepository.findByIdAndOwnerEmail(id, userEmail)
-                                .orElseThrow(() -> new ProductNotFoundException(
-                                                "Product not found with id: " + id));
+                Product product = isAdmin
+                                ? productRepository.findById(id)
+                                                .orElseThrow(() -> new ProductNotFoundException(
+                                                                "Product not found with id: " + id))
+                                : productRepository.findByIdAndOwnerEmail(id, userEmail)
+                                                .orElseThrow(() -> new ProductNotFoundException(
+                                                                "Product not found with id: " + id));
 
                 product.setName(productUpdateRequest.getName());
                 product.setPrice(productUpdateRequest.getPrice());
@@ -121,11 +126,15 @@ public class ProductService {
         }
 
         @Transactional
-        public void deleteProduct(Long id, String userEmail) {
+        public void deleteProduct(Long id, String userEmail, boolean isAdmin) {
 
-                Product product = productRepository.findByIdAndOwnerEmail(id, userEmail)
-                                .orElseThrow(() -> new ProductNotFoundException(
-                                                "Product not found with id: " + id));
+                Product product = isAdmin
+                                ? productRepository.findById(id)
+                                                .orElseThrow(() -> new ProductNotFoundException(
+                                                                "Product not found with id: " + id))
+                                : productRepository.findByIdAndOwnerEmail(id, userEmail)
+                                                .orElseThrow(() -> new ProductNotFoundException(
+                                                                "Product not found with id: " + id));
 
                 productRepository.delete(product);
         }
