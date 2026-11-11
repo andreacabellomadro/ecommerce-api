@@ -381,4 +381,54 @@ class ProductServiceTest {
                                 ArgumentMatchers.<Specification<Product>>any(),
                                 ArgumentMatchers.eq(pageable));
         }
+
+        @Test
+        void shouldAllowAdminToUpdateProductOwnedByAnotherUser() {
+
+                Product existingProduct = Product.builder()
+                                .id(1L)
+                                .name("Teclado antiguo")
+                                .price(new BigDecimal("30.00"))
+                                .stock(5)
+                                .build();
+
+                ProductUpdateRequest request = ProductUpdateRequest.builder()
+                                .name("Teclado actualizado por admin")
+                                .price(new BigDecimal("60.00"))
+                                .stock(15)
+                                .build();
+
+                when(productRepository.findById(1L))
+                                .thenReturn(Optional.of(existingProduct));
+
+                ProductResponse response = productService.updateProduct(
+                                1L, request, "admin@example.com", true);
+
+                assertThat(response.getName())
+                                .isEqualTo("Teclado actualizado por admin");
+
+                assertThat(response.getPrice())
+                                .isEqualByComparingTo("60.00");
+
+                verify(productRepository).findById(1L);
+        }
+
+        @Test
+        void shouldAllowAdminToDeleteProductOwnedByAnotherUser() {
+
+                Product product = Product.builder()
+                                .id(1L)
+                                .name("Teclado")
+                                .price(new BigDecimal("49.99"))
+                                .stock(10)
+                                .build();
+
+                when(productRepository.findById(1L))
+                                .thenReturn(Optional.of(product));
+
+                productService.deleteProduct(1L, "admin@example.com", true);
+
+                verify(productRepository).findById(1L);
+                verify(productRepository).delete(product);
+        }
 }
