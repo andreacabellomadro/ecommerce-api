@@ -188,4 +188,29 @@ class ProductSecurityIntegrationTest {
 
                 return response.get("token").asText();
         }
+
+        @Test
+        void shouldAlwaysRegisterUserWithUserRoleEvenIfAdminRoleIsRequested()
+                        throws Exception {
+
+                String email = "security-" + UUID.randomUUID() + "@test.com";
+                String password = "ClavePrueba123";
+
+                mockMvc.perform(post("/api/v1/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(Map.of(
+                                                "name", "Usuario de prueba",
+                                                "email", email,
+                                                "password", password,
+                                                "role", "ADMIN"))))
+                                .andExpect(status().isCreated());
+
+                User registeredUser = userRepository.findByEmail(email)
+                                .orElseThrow();
+
+                org.junit.jupiter.api.Assertions.assertEquals(
+                                Role.USER,
+                                registeredUser.getRole());
+        }
+
 }
